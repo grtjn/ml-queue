@@ -1,1 +1,48 @@
 Background processing queue for MarkLogic Server
+
+Description
+-----------
+
+The normal task server queue doesn't discriminate between kinds of tasks. CPF processing can for instance flood the queue, and cause front-end request respond slowly. This queue is maintained separately, allows prioritizing, and the cron is designed only to launch tasks when the task server has spare threads. In other words, ideal for background processing.
+
+This code was written as an example, has not been tested in real life. Feedback is welcome.
+
+Installation
+------------
+
+- Drop the contents of this folder anywhere, where it is accessible by MarkLogic Server. So upload it to Modules, or drop in below a folder that has been specified as root of one of your app servers. Personally, I tested it in a subfolder called /tasks/ of the root folder of one my HTTP app servers.
+- Access the code through http://localhost:nnnn/path-to-ml-queue/ (for instance in my case http://localhost:8000/tasks/)
+- It shows the Task queue manager. The top shows some usefull utilities, and details. Then the option to create a task. At the bottom the current queue.
+- As example create the following tasks: /path-to-ml-queue/task-a.xqy, /path-to-ml-queue/task-b.xqy, /path-to-ml-queue/task-c.xqy (default prio)
+- The queue initially shows them in creation order.
+- Hit + behind task a, it will move to the bottom of the queue.
+- Hit - behind task c, it will move to the top of the queue.
+- Now you can hit 'start cron'. After a 10 sec delay, the manager is shown again, stating the cron is active. First task (being task c) should have already been taken from the queue.
+- Hit 'auto refresh' near the top to follow progress with a 5 sec refresh rate. Cron sleeps at intervals of 1 minute.
+- Hit 'stop cron' once the queue is empty. (Hit 'auto refresh' again to follow progress, cron should deactivate in max 1 minute.)
+
+The cron process and the three tasks write log messages. Check ErrorLog.txt, it should report messages like follows:
+
+2011-10-15 16:14:21.540 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:14:26.549 Info: TaskServer: Task C!
+2011-10-15 16:14:26.559 Info: TaskServer: Queue cron 14311129094746556270: launched task 56902235478346153 2011-10-15T16:12:17.889+02:00 /tasks/task-c.xqy -1..
+2011-10-15 16:16:36.643 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:15:26.566 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:15:31.629 Info: TaskServer: Queue cron 14311129094746556270: launched task 16267903407942429866 2011-10-15T16:12:13.286+02:00 /tasks/task-b.xqy 0..
+2011-10-15 16:15:31.629 Info: TaskServer: Task B!
+2011-10-15 16:16:36.643 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:16:31.634 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:16:36.643 Info: TaskServer: Queue cron 14311129094746556270: launched task 14720630703100337358 2011-10-15T16:12:07.66+02:00 /tasks/task-a.xqy 1..
+2011-10-15 16:16:36.643 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:16:36.643 Info: TaskServer: Task A!
+2011-10-15 16:17:36.645 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:17:41.654 Info: TaskServer: Queue cron 14311129094746556270: nothing to do..
+2011-10-15 16:17:41.654 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:18:41.657 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:18:46.665 Info: TaskServer: Queue cron 14311129094746556270: nothing to do..
+2011-10-15 16:18:46.665 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:19:46.672 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:19:51.681 Info: TaskServer: Queue cron 14311129094746556270: nothing to do..
+2011-10-15 16:19:51.681 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
+2011-10-15 16:09:21.793 Info: TaskServer: Queue cron 14311129094746556270: beginning..
+2011-10-15 16:09:26.794 Info: TaskServer: Queue cron 14311129094746556270: stopping..
