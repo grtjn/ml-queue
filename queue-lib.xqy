@@ -110,11 +110,9 @@ declare function q:exec-task($id)
 	let $task := fn:doc(q:get-task-uri($id))/q:task
 	return (
 		(: delete immediately :)
-		xdmp:eval('
-			xquery version "1.0-ml";
-			import module namespace q = "http://grtjn.nl/marklogic/queue" at "queue-lib.xqy";
-			q:delete-task($id)
-		'),
+		xdmp:eval(fn:concat('
+			xdmp:document-delete("', q:get-task-uri($id), '")
+		')),
 		xdmp:spawn($task/q:module)
 	)
 };
