@@ -46,3 +46,9 @@ The cron process and the three tasks write log messages. Check ErrorLog.txt, it 
 2011-10-15 16:19:51.681 Info: TaskServer: Queue cron 14311129094746556270: sleeping 60000 msec..
 2011-10-15 16:09:21.793 Info: TaskServer: Queue cron 14311129094746556270: beginning..
 2011-10-15 16:09:26.794 Info: TaskServer: Queue cron 14311129094746556270: stopping..
+
+NOTE: I changed the function q:get-task-server-threads-available to always return 1 to make the above example more descriptive. Uncomment the original code that have multiple tasks launched at each iteration.
+
+Limitations
+-----------
+The tasks do not take parameters yet, nor can you specify spawn options. Patches welcome!
