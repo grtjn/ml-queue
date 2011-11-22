@@ -53,4 +53,4 @@ Limitations
 -----------
 The tasks do not take parameters yet, nor can you specify spawn options. Patches welcome!
 
-More importantly, the spawn recursion depth is limited (thnx to MarkLogic experts for pointing that out to me). So I tested and the recursion depth is exactly 1000. This happens to coincide with the 'pre-commit trigger depth' that can be configured on each App server, or perhaps that isn't a coincidence at all (haven't tested yet)..
+More importantly, the spawn recursion depth is limited (thnx to MarkLogic experts for pointing that out to me). So I tested and the recursion depth is exactly 1000. This happens to coincide with the 'pre-commit trigger depth' that can be configured on each App server, or perhaps that isn't a coincidence at all (haven't tested yet). To circumvent this, use a Scheduled task (found under Group configuration in the MarkLogic Server Admin interface).
