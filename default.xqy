@@ -13,6 +13,7 @@ let $action := (xdmp:get-request-field("action")[. != ''], "show")[1]
 let $id := (xdmp:get-request-field("id")[. != ''], string(xdmp:random()))[1]
 let $module := xdmp:get-request-field("module", "")
 let $prio as xs:integer := xs:integer((xdmp:get-request-field("prio")[. != ''], "0")[1])
+let $params as map:map := map:map()
 let $start := max((xs:integer((xdmp:get-request-field("start")[. != ''], "1")[1]), 1))
 let $page-size := xs:integer((xdmp:get-request-field("page")[. != ''], "50")[1])
 let $msg := xdmp:get-request-field("msg", "")
@@ -27,7 +28,8 @@ if ($action ne "show") then
 				(xs:QName("action"), $action,
 				 xs:QName("id"), $id,
 				 xs:QName("module"), $module,
-				 xs:QName("prio"), $prio)
+				 xs:QName("prio"), $prio,
+				 xs:QName("params"), $params)
 			)
 		} catch ($e) {
 			string($e)
@@ -75,6 +77,7 @@ else
 				<a href="?auto-refresh=true&amp;start={$start}&amp;page={$page-size}">auto refresh</a>
 			}
 			<a href="?action=flush-task-server&amp;start={$start}&amp;page={$page-size}">flush-task-server</a>
+			<a href="?start={$start}&amp;page={$page-size}">refresh</a>
 		</div>
 		<div><font color="red">{$msg}&#160;</font></div>
 		
@@ -83,6 +86,7 @@ else
 		<div>Max Threads: {$task-server-max-threads}</div>
 		<div>Used Threads: {$task-server-threads}</div>
 		<div>Available Threads: {q:get-task-server-threads-available()}</div>
+		<div>Queued Tasks: {q:get-queued-tasks-count()}</div>
 		
 		<h2>Create task</h2>
 		<form action="?">
@@ -114,7 +118,7 @@ else
 				let $prio := data($task/q:task/q:prio)
 				return
 					<tr>
-						<td>{$pos}</td><td>{$id}</td><td>{$prio}</td><td>{$created}</td><td>{$module}</td><td>
+						<td>{$pos}</td><td><a href="view-task.xqy?id={$id}" target="_blank">{$id}</a></td><td>{$prio}</td><td>{$created}</td><td>{$module}</td><td>
 							<a href="?start={$start}&amp;page={$page-size}&amp;action=remove&amp;id={$id}&amp;module={$module}&amp;prio={$prio}">X</a>
 							<a href="?start={$start}&amp;page={$page-size}&amp;action=incprio&amp;id={$id}&amp;module={$module}&amp;prio={$prio}">+</a>
 							<a href="?start={$start}&amp;page={$page-size}&amp;action=decprio&amp;id={$id}&amp;module={$module}&amp;prio={$prio}">-</a>

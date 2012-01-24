@@ -13,7 +13,7 @@ declare variable $q:max-prio := 50;
 declare variable $q:min-prio := - $q:max-prio;
 declare variable $q:cron-lock-uri := fn:resolve-uri("cron-lock.xml", $q:root-uri);
 declare variable $q:cron-stop-uri := fn:resolve-uri("cron-stop.xml", $q:root-uri);
-declare variable $q:cron-sleep := 60 (: sec :) * 1000 (: ms :);
+declare variable $q:cron-sleep := 15 (: sec :) * 1000 (: ms :);
 
 declare function q:flush-task-server()
 {
@@ -53,7 +53,6 @@ declare function q:flush-task-server()
 declare function q:get-task-server-threads-available()
 	as xs:integer
 {
-(:
 	let $host-id as xs:unsignedLong := xdmp:host()
 	let $host-status := xdmp:host-status($host-id)
 	let $task-server-id as xs:unsignedLong := $host-status//hs:task-server-id
@@ -61,9 +60,7 @@ declare function q:get-task-server-threads-available()
 	let $task-server-threads as xs:integer := $task-server-status//ss:threads
 	let $task-server-max-threads as xs:integer := $task-server-status//ss:max-threads
 	return
-		$task-server-max-threads - $task-server-threads
-:)
-	1 (: for testing :)
+		fn:floor(($task-server-max-threads - $task-server-threads) div 2)
 };
 
 declare function q:get-task-uri($id)
@@ -71,9 +68,17 @@ declare function q:get-task-uri($id)
 	fn:concat($q:root-uri, $id, ".xml")
 };
 
-declare function q:create-task($module, $prio as xs:integer?)
+declare function q:get-queued-tasks-count()
+	as xs:integer
+{
+	xdmp:estimate(fn:collection($q:collection))
+};
+
+declare function q:create-task($module, $prio as xs:integer?, $params as map:map?)
 	as empty-sequence()
 {
+	let $module := fn:resolve-uri($module, xdmp:get-request-path())
+	return
 	if (q:module-exists($module)) then
 		let $id := xdmp:random()
 		let $prio := if (fn:exists($prio)) then $prio else 0
@@ -82,6 +87,7 @@ declare function q:create-task($module, $prio as xs:integer?)
 			<q:task id="{$id}" created="{fn:current-dateTime()}">
 				<q:module>{$module}</q:module>
 				<q:prio>{$prio}</q:prio>
+				<q:params>{$params}</q:params>
 			</q:task>,
 			xdmp:default-permissions(),
 			$q:collection
@@ -108,12 +114,13 @@ declare function q:exec-task($id)
 	as empty-sequence()
 {
 	let $task := fn:doc(q:get-task-uri($id))/q:task
+	let $params := map:map($task/q:params/*)
 	return (
 		(: delete immediately :)
 		xdmp:eval(fn:concat('
 			xdmp:document-delete("', q:get-task-uri($id), '")
 		')),
-		xdmp:spawn($task/q:module)
+		xdmp:spawn($task/q:module, (xs:QName("params"), $params))
 	)
 };
 

@@ -8,10 +8,11 @@ declare variable $action external;
 declare variable $id external;
 declare variable $module external;
 declare variable $prio as xs:integer external;
+declare variable $params as map:map external;
 
 let $do :=
 	if ($action eq "create") then
-		q:create-task($module, $prio)
+		q:create-task($module, $prio, $params)
 	else if ($action eq "remove") then
 		q:delete-task($id)
 	else if ($action eq "incprio") then
